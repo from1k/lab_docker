@@ -134,7 +134,27 @@ $ docker rm my_app
 
 ### Часть 2.
 
-1. Создаем docker-compose.yml
+1. Создаем docker-compose.yml + ```.env``` и ```.env.example``` для пользователей.
+
+```bash
+cat > .env << 'EOF'
+DB_HOST=db
+DB_USER=appuser
+DB_PASS=apppassword
+DB_NAME=tasksdb
+MYSQL_ROOT_PASSWORD=rootpassword
+EOF
+```
+
+```bash
+cat > .env.example << 'EOF'
+DB_HOST=db
+DB_USER=your_db_user
+DB_PASS=your_db_password
+DB_NAME=tasksdb
+MYSQL_ROOT_PASSWORD=your_root_password
+EOF
+```
 
 ```bash
 $ cat > docker-compose.yml << 'EOF'
@@ -150,10 +170,10 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DB_HOST=db
-      - DB_USER=appuser
-      - DB_PASS=apppassword
-      - DB_NAME=tasksdb
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
     restart: on-failure
 
   db:
@@ -161,10 +181,10 @@ services:
     container_name: mysql_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: tasksdb
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
     ports:
       - "3306:3306"
     volumes:
@@ -255,4 +275,17 @@ WARN[0000] /home/from1k/from1k/workspace/lab_docker/docker-compose.yml: the attr
  ✔ Container mysql_db         Removed                                       0.8s
  ✔ Network lab_docker_default Removed                                       0.1s
  ✔ Volume lab_docker_db_data  Removed                                       0.0s
+```
+
+4. Создаем коммиты, пушим, не забываем добавить ```.gitignore``` (.env не включаем в коммиты, он хранится локально с нашими реальными паролями)
+
+```bash
+cat > .gitignore << 'EOF'
+.env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+EOF
 ```
